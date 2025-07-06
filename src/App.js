@@ -14,7 +14,7 @@ function App() {
   const [timeLeft, setTimeLeft] = useState(60);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
-  const [audioURL, setAudioURL] = useState('');
+  const [, setAudioURL] = useState('');
   const [memo, setMemo] = useState('');
   const [isFinished, setIsFinished] = useState(false);
   const [savedHistory, setSavedHistory] = useState([]);
@@ -22,28 +22,36 @@ function App() {
 
   // GPT에서 질문 가져오는 함수 정의
   const fetchQuestionFromGPT = async () => {
-    setTimeLeft(60);
-    setIsFinished(false);
-    setMemo('');
-    setAudioURL('');
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.REACT_APP_OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          {
-            role: 'system',
-            content: '너는 오픽 시험관이야. 영어로 IM2~IH 수준의 질문을 하나 만들어줘.',
-          },
-        ],
-      }),
-    });
-    const data = await res.json();
-    setQuestion(data.choices?.[0]?.message?.content || '질문을 불러오지 못했습니다.');
+    try {
+      setTimeLeft(60);
+      setIsFinished(false);
+      setMemo('');
+      setAudioURL('');
+
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.REACT_APP_OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [
+            {
+              role: 'system',
+              content: '너는 오픽 시험관이야. 영어로 IM2~IH 수준의 질문을 하나 만들어줘.',
+            },
+          ],
+        }),
+      });
+
+      const data = await res.json();
+      const message = data.choices?.[0]?.message?.content;
+      setQuestion(message || '질문을 불러오지 못했습니다.');
+    } catch (error) {
+      console.error('질문을 불러오는 중 오류 발생:', error);
+      setQuestion('질문을 불러오는 중 오류가 발생했습니다.');
+    }
   };
 
   useEffect(() => {
